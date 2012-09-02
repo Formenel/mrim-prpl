@@ -86,10 +86,9 @@ gboolean mrim_send_attention(PurpleConnection  *gc, const char *username, guint 
 void mrim_receive_im_chat(MrimData *mrim, MrimPackage *pack, guint32 msg_id, guint32 flags, gchar *room, gchar *message)
 {
 	PurpleConnection *gc = mrim->gc;
-	gchar *rtf  = mrim_package_read_LPSA(pack); // rtf
-	//purple_debug_info("mrim-prpl", "[%s] RTF result = (%s).\n", __func__, mrim_message_from_rtf(rtf));
-	
-	// handle chat-specific functions
+
+	mrim_package_read_UL(pack); // lps len
+
 	MrimAck *ack = g_hash_table_lookup(mrim->acks, GUINT_TO_POINTER(msg_id));
 	if (ack) {
 		ack->func(mrim, ack->data, pack);
@@ -97,7 +96,7 @@ void mrim_receive_im_chat(MrimData *mrim, MrimPackage *pack, guint32 msg_id, gui
 		return;
 	}
 	// just chat message
-	mrim_package_read_UL(pack);
+
 	guint32 package_type = mrim_package_read_UL(pack);
 	char *topic = mrim_package_read_LPSW(pack);
 	char *from_user = mrim_package_read_LPSA(pack);
@@ -142,7 +141,6 @@ void mrim_receive_im_chat(MrimData *mrim, MrimPackage *pack, guint32 msg_id, gui
 			// TODO: left from chat
 			break;
 	}
-	g_free(rtf);
 	g_free(topic);
 }
 
@@ -186,7 +184,7 @@ void mrim_receive_im(MrimData *mrim, MrimPackage *pack) {
 		mrim_package_send(pack, mrim);
 	}
 	purple_debug_info("mrim-prpl", "[%s] Received from '%s', flags 0x%x, message '%s', rtf '%s'\n", __func__, from, flags, text, formatted_text);
-	gchar *message = purple_markup_escape_text (text, -1);
+	gchar *message = text ? purple_markup_escape_text (text, -1) : NULL;
 	if (flags & MESSAGE_FLAG_AUTHORIZE) { /* TODO: Auth message and alias show */
 		MrimAuthData *data = g_new0(MrimAuthData, 1);
 		data->mrim = mrim;

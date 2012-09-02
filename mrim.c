@@ -382,10 +382,10 @@ static void mrim_input_cb(gpointer data, gint source, PurpleInputCondition cond)
 					guint32 id = mrim_package_read_UL(pack);
 					gchar *uri = mrim_package_read_LPSA(pack);
 					gchar *tmp = mrim_package_read_LPSW(pack);
-					gchar *title = purple_markup_escape_text(tmp, -1);
+					gchar *title = tmp ? purple_markup_escape_text(tmp, -1) : NULL;
 					g_free(tmp);
 					tmp = mrim_package_read_LPSW(pack);
-					gchar *desc = purple_markup_escape_text(tmp, -1);
+					gchar *desc = tmp ? purple_markup_escape_text(tmp, -1) : NULL;
 					g_free(tmp);
 					gchar *email = mrim_package_read_LPSA(pack);
 					guint32 com_support = mrim_package_read_UL(pack);
@@ -419,7 +419,7 @@ static void mrim_input_cb(gpointer data, gint source, PurpleInputCondition cond)
 					mrim_package_read_UL(pack);
 					mrim_package_read_UL(pack);
 					gchar *tmp = mrim_package_read_LPSW(pack);
-					gchar *microblog = purple_markup_escape_text(tmp, -1);
+					gchar *microblog = tmp ? purple_markup_escape_text(tmp, -1) : NULL;
 					g_free(tmp);
 					mrim_package_read_UL(pack);
 					purple_debug_info("mrim-prpl", "[%s] MRIM_CS_MICROBLOG_REСV: email = '%s', microblog = '%s'\n", __func__,
@@ -527,6 +527,17 @@ static void mrim_input_cb(gpointer data, gint source, PurpleInputCondition cond)
 				break;
 				
 #endif
+            case MRIM_CS_MESSAGE_STATUS:
+            {
+                int msg_status = mrim_package_read_UL(pack);
+                if (msg_status != 0)
+                    purple_debug_error("mrim-prpl", "[%s] Error during sending message, seq %d, status %d!", __func__, 
+                                            pack->header->seq, msg_status);
+				MrimAck *ack = g_hash_table_lookup(mrim->acks, GUINT_TO_POINTER(pack->header->seq));
+                if (ack)
+					g_hash_table_remove(mrim->acks, GUINT_TO_POINTER(pack->header->seq));
+                break;
+            }
 			default:
 				{
 					MrimAck *ack = g_hash_table_lookup(mrim->acks, GUINT_TO_POINTER(pack->header->seq));

@@ -70,10 +70,10 @@ static MrimBuddy *mrim_cl_load_buddy(MrimData *mrim, MrimPackage *pack, gchar *m
 		{
 			gchar *status_uri = mrim_package_read_LPSA(pack);
 			gchar *tmp = mrim_package_read_LPSW(pack);
-			gchar *status_title = purple_markup_escape_text(tmp, -1);
+   			gchar *status_title = tmp ? purple_markup_escape_text(tmp, -1) : NULL;
 			g_free(tmp);
 			tmp = mrim_package_read_LPSW(pack);
-			gchar *status_desc = purple_markup_escape_text(tmp, -1);
+			gchar *status_desc = tmp ? purple_markup_escape_text(tmp, -1) : NULL;
 			g_free(tmp);
 			mb->status = make_mrim_status(status_id, status_uri, status_title, status_desc);
 		}
@@ -85,7 +85,7 @@ static MrimBuddy *mrim_cl_load_buddy(MrimData *mrim, MrimPackage *pack, gchar *m
 	mrim_package_read_UL(pack);
 	{
 		gchar *tmp = mrim_package_read_LPSW(pack);
-		mb->microblog = purple_markup_escape_text(tmp, -1);
+		mb->microblog = tmp ? purple_markup_escape_text(tmp, -1) : NULL;
 		g_free(tmp);
 	}
 	mrim_cl_skip(pack, mask + 16);
@@ -104,7 +104,8 @@ void mrim_avatar_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data, const 
 void mrim_fetch_avatar(PurpleBuddy *buddy) {
 	g_return_if_fail(buddy != NULL);
 	g_return_if_fail(buddy->name != NULL);
-	g_return_if_fail(is_myworld_able(buddy->name) == TRUE);
+	if (is_myworld_able(buddy->name) != TRUE)
+        return;
 	purple_debug_info("mrim-prpl", "[%s] Fetch avatar for buddy '%s'\n", __func__, buddy->name);
 	//if (!is_valid_email(buddy->name)) return;
 	if ((!buddy->icon) && buddy->name) {
@@ -1228,16 +1229,18 @@ void mrim_chat_blist(MrimData *mrim, gpointer data, MrimPackage *pack)
 	PurpleConversation *conv =  purple_find_chat(mrim->gc, get_chat_id(data));
 	PurpleConvChat *chat = PURPLE_CONV_CHAT(conv);
 
-	mrim_package_read_UL(pack); // todo: wtf?? 0x62
-	mrim_package_read_UL(pack); // todo: wtf?? 0x02 == MULTICHAT_MEMBERS
+	mrim_package_read_UL(pack); // type - should be MEMBERS
 	gchar *topic = mrim_package_read_LPSW(pack);
-	mrim_package_read_UL(pack); // todo: wtf?? 0x4c
 	// Set Topic
 	purple_conv_chat_set_topic(chat, NULL, topic);
-	///
+
+	mrim_package_read_UL(pack); // member lps len
+
+	int member_count = mrim_package_read_UL(pack);
+
 	/// Add users
-	int n = mrim_package_read_UL(pack);
-	for (int i = 0; i<n ; i++)
+	//int n = mrim_package_read_UL(pack);
+	for (int i = 0; i<member_count ; i++)
 	{
 		gchar *username = mrim_package_read_LPSA(pack);
 		purple_conv_chat_add_user(chat, username, NULL, PURPLE_CBFLAGS_NONE, TRUE);
@@ -1295,7 +1298,7 @@ void mrim_chat_join(PurpleConnection *gc, GHashTable *components)
 		mrim_add_ack_cb(mrim, mrim->seq, mrim_chat_blist, g_strdup(room));
 
 		MrimPackage *pack = mrim_package_new(mrim->seq++, MRIM_CS_MESSAGE);
-		mrim_package_add_UL(pack, MESSAGE_FLAG_MULTICHAT );
+		mrim_package_add_UL(pack, MESSAGE_FLAG_MULTICHAT | MESSAGE_FLAG_NORECV );
 		mrim_package_add_LPSA(pack, room);
 		mrim_package_add_UL(pack, 0);
 		mrim_package_add_UL(pack, 0);

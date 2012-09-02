@@ -28,11 +28,11 @@ gchar *mrim_package_read_LPSW(MrimPackage *pack);
 gchar *mrim_package_read_UIDL(MrimPackage *pack);
 gchar *mrim_package_read_LPS(MrimPackage *pack);
 
-void mrim_package_add_raw(MrimPackage *pack, gchar *data, gsize data_size);
+void mrim_package_add_raw(MrimPackage *pack, const gchar *data, const gsize data_size);
 void mrim_package_add_UL(MrimPackage *pack, guint32 value);
-void mrim_package_add_LPSA(MrimPackage *pack, gchar *string);
-void mrim_package_add_LPSW(MrimPackage *pack, gchar *string);
-void mrim_package_add_UIDL(MrimPackage *pack, gchar *uidl);
+void mrim_package_add_LPSA(MrimPackage *pack, const gchar *string);
+void mrim_package_add_LPSW(MrimPackage *pack, const gchar *string);
+void mrim_package_add_UIDL(MrimPackage *pack, const gchar *uidl);
 void mrim_package_add_base64(MrimPackage *pack, gchar *fmt, ...) __attribute__((format(printf,2,3)));
 
 #endif

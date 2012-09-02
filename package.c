@@ -64,7 +64,7 @@ static mrim_packet_header_t *read_header(MrimData *mrim)
 	gsize ret = recv(mrim->fd, header, sizeof(mrim_packet_header_t), 0);
 	if (ret < sizeof(mrim_packet_header_t)) {
 		g_free(header);
-		purple_debug_info("mrim-prpl", "[%s] Package header len is %d instead of %d\n", __func__, ret, sizeof(mrim_packet_header_t));
+		purple_debug_info("mrim-prpl", "[%s] Package header len is %u instead of %lu\n", __func__, (unsigned int) (ret), sizeof(mrim_packet_header_t));
 		return NULL;
 	}
 	if (header->magic == CS_MAGIC) {
@@ -225,7 +225,7 @@ gchar *mrim_package_read_LPS(MrimPackage *pack) {
 
 /* Package creating */
 
-void mrim_package_add_raw(MrimPackage *pack, gchar *data, gsize data_size) {
+void mrim_package_add_raw(MrimPackage *pack, const gchar *data, const gsize data_size) {
 	if (pack) {
 		if (pack->data) {
 			pack->data = g_realloc(pack->data, pack->data_size + data_size);
@@ -242,7 +242,7 @@ void mrim_package_add_UL(MrimPackage *pack, guint32 value) {
 	mrim_package_add_raw(pack, (gchar*)&value, sizeof(value));
 }
 
-void mrim_package_add_LPSA(MrimPackage *pack, gchar *string) {
+void mrim_package_add_LPSA(MrimPackage *pack, const gchar *string) {
 	gsize str_len;
 	gchar *str = g_convert_with_fallback(string, -1, "CP1251" , "UTF8", NULL, NULL, &str_len, NULL);
 	if (str) {
@@ -254,7 +254,7 @@ void mrim_package_add_LPSA(MrimPackage *pack, gchar *string) {
 	}
 }
 
-void mrim_package_add_LPSW(MrimPackage *pack, gchar *string) {
+void mrim_package_add_LPSW(MrimPackage *pack, gchar const *string) {
 	glong str_len;
 	gunichar2 *str = g_utf8_to_utf16(string, -1, NULL, &str_len, NULL);
 	if (str) {
@@ -266,7 +266,7 @@ void mrim_package_add_LPSW(MrimPackage *pack, gchar *string) {
 	}
 }
 
-void mrim_package_add_UIDL(MrimPackage *pack, gchar *uidl) {
+void mrim_package_add_UIDL(MrimPackage *pack, const gchar *uidl) {
 	mrim_package_add_raw(pack, uidl, 8);
 }
 
