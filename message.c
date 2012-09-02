@@ -165,7 +165,7 @@ void mrim_receive_im(MrimData *mrim, MrimPackage *pack) {
 		formatted_text = mrim_package_read_LPSA(pack);
 		//formatted_text = g_new0(gchar, 1024);
 		//if ( mrim_package_read_raw(pack, formatted_text, 0) ) {
-		if ( (formatted_text) && (g_strcmp0(formatted_text, "") != 0) ) {
+		if ( (formatted_text) && (strlen(formatted_text) > 8) ) {
 			purple_debug_info("mrim-prpl", "[%s] RTF read = (%s).\n", __func__, formatted_text);
             gchar *tmp = mrim_message_from_rtf(formatted_text);
             g_free(formatted_text);
